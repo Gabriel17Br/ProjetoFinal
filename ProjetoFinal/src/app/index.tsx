@@ -1,98 +1,179 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+// 1. Dados falsos (mock) simulando serviços postados por usuários
+type Servico = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  preco: string;
+  autor: string;
+  categoria: string;
+};
+const servicos = [
+  {
+    id: "1",
+    titulo: "Montador de Móveis",
+    descricao:
+      "Monto guarda-roupas, camas, mesas e painéis de TV com rapidez e limpeza.",
+    preco: "R$ 150,00",
+    autor: "João Silva",
+    categoria: "Serviços Gerais",
+  },
+  {
+    id: "2",
+    titulo: "Design de Logotipo",
+    descricao:
+      "Crio logos profissionais e identidade visual completa para a sua marca.",
+    preco: "R$ 350,00",
+    autor: "Marina Costa",
+    categoria: "Design",
+  },
+  {
+    id: "3",
+    titulo: "Passeador de Cães (Dog Walker)",
+    descricao:
+      "Passeios de 1 hora no parque. Tenho experiência com cães de grande porte.",
+    preco: "R$ 40,00 / hora",
+    autor: "Carlos Eduardo",
+    categoria: "Pets",
+  },
+  {
+    id: "4",
+    titulo: "Aulas de Inglês Conversação",
+    descricao:
+      "Aulas online focadas em conversação e perda da timidez para falar.",
+    preco: "R$ 60,00 / aula",
+    autor: "Ana Paula",
+    categoria: "Aulas",
+  },
+];
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+export default function ListaServicosScreen() {
+  const renderizarServico = ({ item }: { item: Servico }) => (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.7} // Deixa o card levemente transparente ao clicar
+      onPress={() => console.log(`Clicou no serviço: ${item.titulo}`)}
+    >
+      <View style={styles.cabecalhoCard}>
+        <Text style={styles.categoria}>{item.categoria}</Text>
+        <Text style={styles.preco}>{item.preco}</Text>
+      </View>
+
+      <Text style={styles.titulo}>{item.titulo}</Text>
+      <Text style={styles.descricao} numberOfLines={2}>
+        {item.descricao}
+      </Text>
+
+      <View style={styles.rodapeCard}>
+        <Text style={styles.postadoPor}>
+          Postado por: <Text style={styles.autor}>{item.autor}</Text>
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
-}
 
-export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.container}>
+      <Text style={styles.tituloPagina}>Serviços Disponíveis</Text>
+      <Text style={styles.subtitulo}>Encontre o que você precisa</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <FlatList
+        data={servicos}
+        keyExtractor={(item) => item.id}
+        renderItem={renderizarServico}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listaPadding}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#F3F4F6",
+    paddingTop: 60,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  tituloPagina: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#111827",
+    paddingHorizontal: 20,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  subtitulo: {
+    fontSize: 16,
+    color: "#6B7280",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 4,
   },
-  title: {
-    textAlign: 'center',
+  listaPadding: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
-  code: {
-    textTransform: 'uppercase',
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    // Sombra iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Sombra Android
+    elevation: 3,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  cabecalhoCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  categoria: {
+    backgroundColor: "#003bfd",
+    color: "#dedcfc",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  preco: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#10B981",
+  },
+  titulo: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 6,
+  },
+  descricao: {
+    fontSize: 14,
+    color: "#4B5563",
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  rodapeCard: {
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+    paddingTop: 10,
+  },
+  postadoPor: {
+    fontSize: 12,
+    color: "#9CA3AF",
+  },
+  autor: {
+    color: "#374151",
+    fontWeight: "600",
   },
 });
