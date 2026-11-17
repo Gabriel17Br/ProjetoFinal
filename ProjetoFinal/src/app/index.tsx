@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   categoria: {
-    backgroundColor: "#003bfd",
-    color: "#dedcfc",
+    backgroundColor: "#A5065D",
+    color: "#FDDEF3",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
