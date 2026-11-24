@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -11,7 +12,7 @@ export default function TabLayout() {
       
       {/* 1º BOTÃO: Tela de Serviços */}
       <Tabs.Screen
-        name="index"
+        name="servicos_feed"
         options={{
           title: 'Serviços',
           tabBarIcon: ({ color, size }: any) => (
@@ -20,16 +21,36 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 2º BOTÃO: Tela de Perfil */}
+      {/* 4º BOTÃO: Tela de Publicar Vaga */}
       <Tabs.Screen
-        name="perfil_usuario"
+        name="publicar"
         options={{
-          title: 'Meu Perfil',
+          title: 'Publicar Vagas',
           tabBarIcon: ({ color, size }: any) => (
-            <Ionicons name="person" size={size} color={color} />
+            <AntDesign name="plus" size={24} color={color} />
           ),
         }}
-      />
+      /> 
+      {/* 3º BOTÃO: Tela de Buscar Vagas */}
+      <Tabs.Screen
+        name="buscar_vagas"
+        options={{
+          title: 'Buscar Vagas',
+          tabBarIcon: ({ color, size }: any) => (
+            <Ionicons name="list" size={size} color={color} />
+          ),
+        }}
+      /> 
+        {/* 2º BOTÃO: Tela de Perfil */}
+        <Tabs.Screen
+          name="perfil_usuario"
+          options={{
+            title: 'Perfil',
+            tabBarIcon: ({ color, size }: any) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
 
     </Tabs>
   );

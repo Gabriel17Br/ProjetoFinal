@@ -21,9 +21,6 @@ export default function Perfil() {
 
         {/* CABEÇALHO ROSA */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.voltar}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
 
           {/* FOTO DE PERFIL */}
           <View style={styles.fotoContainer}>
