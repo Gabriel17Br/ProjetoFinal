@@ -1,69 +1,82 @@
+import React, { useState, useCallback } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import Api from '../services/api';
 
-// 1. Dados falsos (mock) simulando serviços postados por usuários
-type Servico = {
-  id: string;
+type ServicoApi = {
+  id: number;
   titulo: string;
   descricao: string;
-  preco: string;
-  autor: string;
-  categoria: string;
+  preco?: number | null;
+  categoria?: string | null;
+  localizacao?: string | null;
+  autor?: string | null;
+  usuario?: {
+    id: number;
+    nome: string;
+  } | null;
 };
-const servicos = [
-  {
-    id: "1",
-    titulo: "Montador de Móveis",
-    descricao:
-      "Monto guarda-roupas, camas, mesas e painéis de TV com rapidez e limpeza.",
-    preco: "R$ 150,00",
-    autor: "João Silva",
-    categoria: "Serviços Gerais",
-  },
-  {
-    id: "2",
-    titulo: "Design de Logotipo",
-    descricao:
-      "Crio logos profissionais e identidade visual completa para a sua marca.",
-    preco: "R$ 350,00",
-    autor: "Marina Costa",
-    categoria: "Design",
-  },
-  {
-    id: "3",
-    titulo: "Passeador de Cães (Dog Walker)",
-    descricao:
-      "Passeios de 1 hora no parque. Tenho experiência com cães de grande porte.",
-    preco: "R$ 40,00 / hora",
-    autor: "Carlos Eduardo",
-    categoria: "Pets",
-  },
-  {
-    id: "4",
-    titulo: "Aulas de Inglês Conversação",
-    descricao:
-      "Aulas online focadas em conversação e perda da timidez para falar.",
-    preco: "R$ 60,00 / aula",
-    autor: "Ana Paula",
-    categoria: "Aulas",
-  },
-];
 
 export default function ListaServicosScreen() {
-  const renderizarServico = ({ item }: { item: Servico }) => (
+  const [servicos, setServicos] = useState<ServicoApi[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [atualizando, setAtualizando] = useState(false);
+
+  const carregarServicos = async () => {
+    try {
+      const res = await Api.get<ServicoApi[]>('/Servicos/ListarTodos');
+      const lista = Array.isArray(res.data) ? res.data : (res.data as any)?.dados ?? [];
+      setServicos(lista);
+    } catch (error: any) {
+      console.error('Erro ao buscar serviços:', error?.response?.data || error.message);
+    } finally {
+      setCarregando(false);
+      setAtualizando(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarServicos();
+    }, [])
+  );
+
+  const formatarPreco = (preco?: number | null) => {
+    if (preco == null || Number.isNaN(Number(preco))) {
+      return 'A combinar';
+    }
+    return `R$ ${Number(preco).toFixed(2).replace('.', ',')}`;
+  };
+
+  const obterNomeAutor = (item: ServicoApi) => {
+    return item.usuario?.nome || item.autor || 'Prestador TRAMPI';
+  };
+
+  const handleSelecionarServico = (item: ServicoApi) => {
+    Alert.alert(
+      item.titulo,
+      `${item.descricao}\n\nValor: ${formatarPreco(item.preco)}\nPor: ${obterNomeAutor(item)}`
+    );
+  };
+
+  const renderizarServico = ({ item }: { item: ServicoApi }) => (
     <TouchableOpacity
       style={styles.card}
-      activeOpacity={0.7} // Deixa o card levemente transparente ao clicar
-      onPress={() => console.log(`Clicou no serviço: ${item.titulo}`)}
+      activeOpacity={0.7}
+      onPress={() => handleSelecionarServico(item)}
     >
       <View style={styles.cabecalhoCard}>
-        <Text style={styles.categoria}>{item.categoria}</Text>
-        <Text style={styles.preco}>{item.preco}</Text>
+        <Text style={styles.categoria}>{item.categoria || 'Serviços'}</Text>
+        <Text style={styles.preco}>{formatarPreco(item.preco)}</Text>
       </View>
 
       <Text style={styles.titulo}>{item.titulo}</Text>
@@ -73,7 +86,8 @@ export default function ListaServicosScreen() {
 
       <View style={styles.rodapeCard}>
         <Text style={styles.postadoPor}>
-          Postado por: <Text style={styles.autor}>{item.autor}</Text>
+          Postado por: <Text style={styles.autor}>{obterNomeAutor(item)}</Text>
+          {item.localizacao ? ` • ${item.localizacao}` : ''}
         </Text>
       </View>
     </TouchableOpacity>
@@ -84,13 +98,34 @@ export default function ListaServicosScreen() {
       <Text style={styles.tituloPagina}>Serviços Disponíveis</Text>
       <Text style={styles.subtitulo}>Encontre o que você precisa</Text>
 
-      <FlatList
-        data={servicos}
-        keyExtractor={(item) => item.id}
-        renderItem={renderizarServico}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listaPadding}
-      />
+      {carregando ? (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color="#A5065D" />
+        </View>
+      ) : (
+        <FlatList
+          data={servicos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderizarServico}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listaPadding}
+          refreshControl={
+            <RefreshControl
+              refreshing={atualizando}
+              onRefresh={() => {
+                setAtualizando(true);
+                carregarServicos();
+              }}
+              colors={['#A5065D']}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.centro}>
+              <Text style={styles.textoVazio}>Nenhum serviço disponível no momento.</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -98,18 +133,18 @@ export default function ListaServicosScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: '#F3F4F6',
     paddingTop: 60,
   },
   tituloPagina: {
     fontSize: 26,
-    fontWeight: "bold",
-    color: "#111827",
+    fontWeight: 'bold',
+    color: '#111827',
     paddingHorizontal: 20,
   },
   subtitulo: {
     fontSize: 16,
-    color: "#6B7280",
+    color: '#6B7280',
     paddingHorizontal: 20,
     marginBottom: 20,
     marginTop: 4,
@@ -117,63 +152,73 @@ const styles = StyleSheet.create({
   listaPadding: {
     paddingHorizontal: 20,
     paddingBottom: 40,
+    flexGrow: 1,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    // Sombra iOS
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // Sombra Android
     elevation: 3,
   },
   cabecalhoCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
   },
   categoria: {
-    backgroundColor: "#A5065D",
-    color: "#FDDEF3",
+    backgroundColor: '#A5065D',
+    color: '#FDDEF3',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   preco: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#10B981",
+    fontWeight: 'bold',
+    color: '#10B981',
   },
   titulo: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
+    fontWeight: 'bold',
+    color: '#1F2937',
     marginBottom: 6,
   },
   descricao: {
     fontSize: 14,
-    color: "#4B5563",
+    color: '#4B5563',
     lineHeight: 20,
     marginBottom: 12,
   },
   rodapeCard: {
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    borderTopColor: '#F3F4F6',
     paddingTop: 10,
   },
   postadoPor: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: '#9CA3AF',
   },
   autor: {
-    color: "#374151",
-    fontWeight: "600",
+    color: '#374151',
+    fontWeight: '600',
+  },
+  centro: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  textoVazio: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
   },
 });

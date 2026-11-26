@@ -25,7 +25,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="publicar"
         options={{
-          title: 'Publicar Vagas',
+          title: 'Publicar',
           tabBarIcon: ({ color, size }: any) => (
             <AntDesign name="plus" size={24} color={color} />
           ),
